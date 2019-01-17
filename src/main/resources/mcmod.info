@@ -1,0 +1,16 @@
+[
+{
+  "modid": "sct",
+  "name": "Smart Crafting Table",
+  "description": "Smart crafting table keeps inventory and allow players to use adjacent chests to pick items",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["drcrazy"],
+  "credits": "Alphabet gave me all letters to write this mod, modmuss50 gave textures.",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]
