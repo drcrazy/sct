@@ -6,11 +6,11 @@ package ru.wowhcb.sct;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Container;
+import net.minecraft.inventory.InventoryCraftResult;
+import net.minecraft.inventory.InventoryCrafting;
 import net.minecraft.inventory.Slot;
+import net.minecraft.inventory.SlotCrafting;
 import net.minecraft.item.ItemStack;
-import net.minecraftforge.items.CapabilityItemHandler;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.SlotItemHandler;
 
 /**
  * @author drcrazy
@@ -19,7 +19,9 @@ import net.minecraftforge.items.SlotItemHandler;
 public class SCTContainer extends Container {
 
 	private SCTTileEntity tile;
-
+	public InventoryCrafting craftMatrix = new InventoryCrafting(this, 3, 3);
+	public InventoryCraftResult craftResult = new InventoryCraftResult();
+	
 	/**
 	 * @param playerInventory InventoryPlayer Inventory of a player who use our tile
 	 * @param tile            SCTTileEntity Smart Workbench tile entity
@@ -27,28 +29,24 @@ public class SCTContainer extends Container {
 	 */
 	public SCTContainer(InventoryPlayer playerInventory, SCTTileEntity tile) {
 		this.tile = tile;
+		addSlotToContainer(new SlotCrafting(playerInventory.player, craftMatrix, craftResult, 0, 124, 35));
 
 		// Tile slots
-		IItemHandler itemHandler = this.tile.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null);
-		int x = 10;
-		int y = 6;
-
-		int slotIndex = 0;
-		for (int i = 0; i < itemHandler.getSlots(); i++) {
-			addSlotToContainer(new SlotItemHandler(itemHandler, slotIndex, x, y));
-			slotIndex++;
-			x += 18;
-		}
+	    for(int i = 0; i < 3; ++i) {
+	        for(int j = 0; j < 3; ++j) {
+	          addSlotToContainer(new Slot(craftMatrix, j + i * 3, 30 + j * 18, 17 + i * 18));
+	        }
+	      }
 
 		// Player slots
 		for (int i = 0; i < 3; ++i) {
 			for (int j = 0; j < 9; ++j) {
-				this.addSlotToContainer(new Slot(playerInventory, j + i * 9 + 9, 8 + j * 18, 84 + i * 18));
+				addSlotToContainer(new Slot(playerInventory, j + i * 9 + 9, 8 + j * 18, 84 + i * 18));
 			}
 		}
 
 		for (int k = 0; k < 9; ++k) {
-			this.addSlotToContainer(new Slot(playerInventory, k, 8 + k * 18, 142));
+			addSlotToContainer(new Slot(playerInventory, k, 8 + k * 18, 142));
 		}
 	}
 
