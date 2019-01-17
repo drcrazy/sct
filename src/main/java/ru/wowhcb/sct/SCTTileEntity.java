@@ -4,6 +4,10 @@
 package ru.wowhcb.sct;
 
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.inventory.Container;
+import net.minecraft.inventory.InventoryCrafting;
+import net.minecraft.item.crafting.CraftingManager;
+import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
@@ -17,34 +21,40 @@ import net.minecraftforge.items.ItemStackHandler;
  */
 public class SCTTileEntity extends TileEntity {
 	
-	public static final int INV_SIZE = 9;
-
+	public static final int INV_SIZE = 10;
+	public static final int OUTPUT_SLOT_IDX = 9;
+    private ItemStackHandler inventory; 
+    private InventoryCrafting tempMatrix;
+    private IRecipe cachedRecipe = null;
+    
 	public SCTTileEntity() {
 		super();
-
+		inventory = new ItemStackHandler(INV_SIZE) {
+	        @Override
+	        protected void onContentsChanged(int slot) {
+	        	SCTTileEntity.this.markDirty();
+	        }
+	    };	
+		tempMatrix = new InventoryCrafting(new Container() {
+			@Override
+			public boolean canInteractWith(EntityPlayer playerIn) {
+				return false;
+			}
+		}, 3, 3);
 	}
-	
-    private ItemStackHandler itemStackHandler = new ItemStackHandler(INV_SIZE) {
-        @Override
-        protected void onContentsChanged(int slot) {
-            // We need to tell the tile entity that something has changed so
-            // that the chest contents is persisted
-        	SCTTileEntity.this.markDirty();
-        }
-    };
     
     @Override
     public void readFromNBT(NBTTagCompound compound) {
         super.readFromNBT(compound);
         if (compound.hasKey("items")) {
-            itemStackHandler.deserializeNBT((NBTTagCompound) compound.getTag("items"));
+        	inventory.deserializeNBT((NBTTagCompound) compound.getTag("items"));
         }
     }
 
     @Override
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
         super.writeToNBT(compound);
-        compound.setTag("items", itemStackHandler.serializeNBT());
+        compound.setTag("items", inventory.serializeNBT());
         return compound;
     }
 
@@ -63,9 +73,31 @@ public class SCTTileEntity extends TileEntity {
     @Override
     public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
         if (capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) {
-            return CapabilityItemHandler.ITEM_HANDLER_CAPABILITY.cast(itemStackHandler);
+            return CapabilityItemHandler.ITEM_HANDLER_CAPABILITY.cast(inventory);
         }
         return super.getCapability(capability, facing);
+    }
+    
+    public void refreshRecipe() {
+    	if (world.isRemote) {
+    		return;
+    	}
+		for (int i = 0; i < 9; i++) {
+			tempMatrix.setInventorySlotContents(i, inventory.getStackInSlot(i));
+		}
+		if (tempMatrix.isEmpty()) {
+			return;
+		}
+		if (cachedRecipe != null && cachedRecipe.matches(tempMatrix, world)) {
+			return;
+		}
+		for (IRecipe testRecipe : CraftingManager.REGISTRY) {
+			if (testRecipe.matches(tempMatrix, world)) {
+				cachedRecipe = testRecipe;
+
+			}
+		}
+    	
     }
 	
 

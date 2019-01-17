@@ -4,13 +4,17 @@
 package ru.wowhcb.sct;
 
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Container;
-import net.minecraft.inventory.InventoryCraftResult;
-import net.minecraft.inventory.InventoryCrafting;
+import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
-import net.minecraft.inventory.SlotCrafting;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
+import net.minecraftforge.items.CapabilityItemHandler;
+import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.items.SlotItemHandler;
 
 /**
  * @author drcrazy
@@ -19,8 +23,10 @@ import net.minecraft.item.ItemStack;
 public class SCTContainer extends Container {
 
 	private SCTTileEntity tile;
-	public InventoryCrafting craftMatrix = new InventoryCrafting(this, 3, 3);
-	public InventoryCraftResult craftResult = new InventoryCraftResult();
+	private final World world;
+	private final BlockPos pos;
+	private final EntityPlayerMP player;
+	private IItemHandler tileInventory;
 	
 	/**
 	 * @param playerInventory InventoryPlayer Inventory of a player who use our tile
@@ -29,22 +35,29 @@ public class SCTContainer extends Container {
 	 */
 	public SCTContainer(InventoryPlayer playerInventory, SCTTileEntity tile) {
 		this.tile = tile;
-		addSlotToContainer(new SlotCrafting(playerInventory.player, craftMatrix, craftResult, 0, 124, 35));
-
-		// Tile slots
-	    for(int i = 0; i < 3; ++i) {
-	        for(int j = 0; j < 3; ++j) {
-	          addSlotToContainer(new Slot(craftMatrix, j + i * 3, 30 + j * 18, 17 + i * 18));
-	        }
-	      }
-
-		// Player slots
+        this.world = tile.getWorld();
+        this.pos = tile.getPos();
+        this.player = (EntityPlayerMP) playerInventory.player;
+		this.tileInventory = tile.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null);
+		addSlotToContainer(new SlotItemHandler(tileInventory, SCTTileEntity.OUTPUT_SLOT_IDX, 124, 35));
+		addCraftingMatrix();
+		addPlayerInventory(playerInventory);
+	}
+	
+	private void addCraftingMatrix() {
+		for (int i = 0; i < 3; ++i) {
+			for (int j = 0; j < 3; ++j) {
+				addSlotToContainer(new SlotItemHandler(tileInventory, j + i * 3, 30 + j * 18, 17 + i * 18));
+			}
+		}
+	}
+	
+	private void addPlayerInventory(InventoryPlayer playerInventory) {
 		for (int i = 0; i < 3; ++i) {
 			for (int j = 0; j < 9; ++j) {
 				addSlotToContainer(new Slot(playerInventory, j + i * 9 + 9, 8 + j * 18, 84 + i * 18));
 			}
 		}
-
 		for (int k = 0; k < 9; ++k) {
 			addSlotToContainer(new Slot(playerInventory, k, 8 + k * 18, 142));
 		}
@@ -54,32 +67,17 @@ public class SCTContainer extends Container {
 	public boolean canInteractWith(EntityPlayer playerIn) {
 		return tile.canInteractWith(playerIn);
 	}
-
-	@Override
-	public ItemStack transferStackInSlot(EntityPlayer playerIn, int index) {
-		ItemStack itemstack = ItemStack.EMPTY;
-		Slot slot = this.inventorySlots.get(index);
-
-		if (slot != null && slot.getHasStack()) {
-			ItemStack itemstack1 = slot.getStack();
-			itemstack = itemstack1.copy();
-
-			if (index < SCTTileEntity.INV_SIZE) {
-				if (!this.mergeItemStack(itemstack1, SCTTileEntity.INV_SIZE, this.inventorySlots.size(), true)) {
-					return ItemStack.EMPTY;
-				}
-			} else if (!this.mergeItemStack(itemstack1, 0, SCTTileEntity.INV_SIZE, false)) {
-				return ItemStack.EMPTY;
-			}
-
-			if (itemstack1.isEmpty()) {
-				slot.putStack(ItemStack.EMPTY);
-			} else {
-				slot.onSlotChanged();
-			}
-		}
-
-		return itemstack;
+	
+    @Override
+	public void onCraftMatrixChanged(IInventory inventoryIn) {
+    	if (world.isRemote) {
+    		return;
+    	}
+    	tile.refreshRecipe();
 	}
-
+	
+	@Override
+	public void onContainerClosed(EntityPlayer player){
+		
+	}
 }
