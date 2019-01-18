@@ -4,11 +4,15 @@
 package ru.wowhcb.sct;
 
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.Container;
+import net.minecraft.inventory.InventoryCraftResult;
 import net.minecraft.inventory.InventoryCrafting;
+import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.CraftingManager;
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.network.play.server.SPacketSetSlot;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraftforge.common.capabilities.Capability;
@@ -21,26 +25,39 @@ import net.minecraftforge.items.ItemStackHandler;
  */
 public class SCTTileEntity extends TileEntity {
 	
-	public static final int INV_SIZE = 10;
-	public static final int OUTPUT_SLOT_IDX = 9;
-    private ItemStackHandler inventory; 
+	public static final int INV_SIZE = 9;
     private InventoryCrafting tempMatrix;
+    private InventoryCraftResult craftResult;
+    
     private IRecipe cachedRecipe = null;
+    private ItemStackHandler inventory = new ItemStackHandler(INV_SIZE) {
+        @Override
+        protected void onContentsChanged(int slot) {
+        	
+        	SCTTileEntity.this.markDirty();
+        }
+    };
     
 	public SCTTileEntity() {
 		super();
-		inventory = new ItemStackHandler(INV_SIZE) {
-	        @Override
-	        protected void onContentsChanged(int slot) {
-	        	SCTTileEntity.this.markDirty();
-	        }
-	    };	
 		tempMatrix = new InventoryCrafting(new Container() {
 			@Override
 			public boolean canInteractWith(EntityPlayer playerIn) {
 				return false;
 			}
 		}, 3, 3);
+		craftResult = new InventoryCraftResult();
+	}
+	
+	public InventoryCrafting getCraftingGrid() {
+		for (int i = 0; i < 9; i++) {
+			tempMatrix.setInventorySlotContents(i, inventory.getStackInSlot(i));
+		}
+		return tempMatrix;
+	}
+	
+	public InventoryCraftResult getCraftResult() {
+		return craftResult;
 	}
     
     @Override
@@ -78,27 +95,31 @@ public class SCTTileEntity extends TileEntity {
         return super.getCapability(capability, facing);
     }
     
-    public void refreshRecipe() {
-    	if (world.isRemote) {
-    		return;
-    	}
-		for (int i = 0; i < 9; i++) {
-			tempMatrix.setInventorySlotContents(i, inventory.getStackInSlot(i));
-		}
-		if (tempMatrix.isEmpty()) {
+	public void refreshGrid(EntityPlayerMP playerMP, int windowId) {
+		if (world.isRemote) {
 			return;
 		}
-		if (cachedRecipe != null && cachedRecipe.matches(tempMatrix, world)) {
-			return;
-		}
-		for (IRecipe testRecipe : CraftingManager.REGISTRY) {
-			if (testRecipe.matches(tempMatrix, world)) {
-				cachedRecipe = testRecipe;
-
+		tempMatrix = getCraftingGrid();
+		ItemStack itemstack = ItemStack.EMPTY;
+		// Check if we can craft again
+		if (cachedRecipe != null) {
+			if (!cachedRecipe.matches(tempMatrix, world)) {
+				cachedRecipe = null;
 			}
 		}
-    	
-    }
+		// Try to find recipe
+		if (cachedRecipe == null) {
+			cachedRecipe = CraftingManager.findMatchingRecipe(tempMatrix, world);
+		}
+
+		if (cachedRecipe != null && (cachedRecipe.isDynamic() || !world.getGameRules().getBoolean("doLimitedCrafting")
+				|| playerMP.getRecipeBook().isUnlocked(cachedRecipe))) {
+			itemstack = cachedRecipe.getCraftingResult(tempMatrix);
+		}
+
+		craftResult.setInventorySlotContents(0, itemstack);
+		playerMP.connection.sendPacket(new SPacketSetSlot(windowId, 0, itemstack));
+	}
 	
 
 }

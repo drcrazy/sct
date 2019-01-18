@@ -9,8 +9,6 @@ import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
@@ -24,8 +22,7 @@ public class SCTContainer extends Container {
 
 	private SCTTileEntity tile;
 	private final World world;
-	private final BlockPos pos;
-	private final EntityPlayerMP player;
+	private final EntityPlayer player;
 	private IItemHandler tileInventory;
 	
 	/**
@@ -36,10 +33,10 @@ public class SCTContainer extends Container {
 	public SCTContainer(InventoryPlayer playerInventory, SCTTileEntity tile) {
 		this.tile = tile;
         this.world = tile.getWorld();
-        this.pos = tile.getPos();
-        this.player = (EntityPlayerMP) playerInventory.player;
+        this.player = playerInventory.player;
 		this.tileInventory = tile.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null);
-		addSlotToContainer(new SlotItemHandler(tileInventory, SCTTileEntity.OUTPUT_SLOT_IDX, 124, 35));
+		//addSlotToContainer(new SlotItemHandler(tileInventory, SCTTileEntity.OUTPUT_SLOT_IDX, 124, 35));
+		addSlotToContainer(new SCTCraftingSlot(player, tile.getCraftingGrid(), tile.getCraftResult(), 0, 124, 35));
 		addCraftingMatrix();
 		addPlayerInventory(playerInventory);
 	}
@@ -73,7 +70,7 @@ public class SCTContainer extends Container {
     	if (world.isRemote) {
     		return;
     	}
-    	tile.refreshRecipe();
+    	tile.refreshGrid((EntityPlayerMP) player, windowId);
 	}
 	
 	@Override
