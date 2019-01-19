@@ -57,3 +57,9 @@ processResources {
         exclude 'mcmod.info'
     }
 }
+
+jar {
+    manifest {
+        attributes 'FMLAT': 'sct_at.cfg'
+    }
+}

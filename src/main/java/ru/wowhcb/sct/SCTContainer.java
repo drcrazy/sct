@@ -4,26 +4,27 @@
 package ru.wowhcb.sct;
 
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.player.InventoryPlayer;
-import net.minecraft.inventory.Container;
-import net.minecraft.inventory.IInventory;
+import net.minecraft.inventory.ContainerWorkbench;
+import net.minecraft.inventory.InventoryCraftResult;
+import net.minecraft.inventory.InventoryCrafting;
 import net.minecraft.inventory.Slot;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.world.World;
 import net.minecraftforge.items.CapabilityItemHandler;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.SlotItemHandler;
+import net.minecraftforge.items.ItemStackHandler;
 
 /**
  * @author drcrazy
  *
  */
-public class SCTContainer extends Container {
+public class SCTContainer extends ContainerWorkbench {
 
-	private SCTTileEntity tile;
-	private final World world;
-	private final EntityPlayer player;
-	private IItemHandler tileInventory;
+	private final SCTTileEntity tile;
+	private final ItemStackHandler tileInventory;
+	public final World world;
+	public IRecipe lastRecipe;
 	
 	/**
 	 * @param playerInventory InventoryPlayer Inventory of a player who use our tile
@@ -31,20 +32,28 @@ public class SCTContainer extends Container {
 	 * 
 	 */
 	public SCTContainer(InventoryPlayer playerInventory, SCTTileEntity tile) {
+		super(playerInventory, tile.getWorld(), tile.getPos());
 		this.tile = tile;
-        this.world = tile.getWorld();
-        this.player = playerInventory.player;
-		this.tileInventory = tile.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null);
-		//addSlotToContainer(new SlotItemHandler(tileInventory, SCTTileEntity.OUTPUT_SLOT_IDX, 124, 35));
-		addSlotToContainer(new SCTCraftingSlot(player, tile.getCraftingGrid(), tile.getCraftResult(), 0, 124, 35));
+		this.world = tile.getWorld();
+ 		this.tileInventory = (ItemStackHandler) tile.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null);
+ 		inventorySlots.clear();
+ 		inventoryItemStacks.clear();
+ 		updateCraftMatrix();
+ 		addSlotToContainer(new SCTCraftingSlot(this, playerInventory.player, craftMatrix, craftResult, 0, 124, 35));
 		addCraftingMatrix();
 		addPlayerInventory(playerInventory);
+	}
+	
+	private void updateCraftMatrix() {
+		for (int i = 0; i < 9; i++) {
+			craftMatrix.setInventorySlotContents(i, tileInventory.getStackInSlot(i));
+		}
 	}
 	
 	private void addCraftingMatrix() {
 		for (int i = 0; i < 3; ++i) {
 			for (int j = 0; j < 3; ++j) {
-				addSlotToContainer(new SlotItemHandler(tileInventory, j + i * 3, 30 + j * 18, 17 + i * 18));
+				addSlotToContainer(new Slot(craftMatrix, j + i * 3, 30 + j * 18, 17 + i * 18));
 			}
 		}
 	}
@@ -65,16 +74,18 @@ public class SCTContainer extends Container {
 		return tile.canInteractWith(playerIn);
 	}
 	
-    @Override
-	public void onCraftMatrixChanged(IInventory inventoryIn) {
-    	if (world.isRemote) {
-    		return;
-    	}
-    	tile.refreshGrid((EntityPlayerMP) player, windowId);
+	@Override
+	public void onContainerClosed(EntityPlayer player) {
+		if (world.isRemote) { return; }
+		for (int i = 0; i < 9; i++) {
+			if (!tileInventory.getStackInSlot(i).isEmpty()) { tileInventory.setStackInSlot(i, ItemStack.EMPTY); }
+			tileInventory.setStackInSlot(i, craftMatrix.removeStackFromSlot(i));
+		}
 	}
 	
 	@Override
-	public void onContainerClosed(EntityPlayer player){
+	protected void slotChangedCraftingGrid(World world, EntityPlayer player, InventoryCrafting inv, InventoryCraftResult result) {
 		
 	}
+	
 }
