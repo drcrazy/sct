@@ -4,13 +4,16 @@
 package ru.wowhcb.sct;
 
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.ContainerWorkbench;
 import net.minecraft.inventory.InventoryCraftResult;
 import net.minecraft.inventory.InventoryCrafting;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.crafting.CraftingManager;
 import net.minecraft.item.crafting.IRecipe;
+import net.minecraft.network.play.server.SPacketSetSlot;
 import net.minecraft.world.World;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
@@ -38,27 +41,16 @@ public class SCTContainer extends ContainerWorkbench {
  		this.tileInventory = (ItemStackHandler) tile.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null);
  		inventorySlots.clear();
  		inventoryItemStacks.clear();
- 		updateCraftMatrix();
+ 		loadInventoryFromTile();
+ 		// Slot for craft result
  		addSlotToContainer(new SCTCraftingSlot(this, playerInventory.player, craftMatrix, craftResult, 0, 124, 35));
-		addCraftingMatrix();
-		addPlayerInventory(playerInventory);
-	}
-	
-	private void updateCraftMatrix() {
-		for (int i = 0; i < 9; i++) {
-			craftMatrix.setInventorySlotContents(i, tileInventory.getStackInSlot(i));
-		}
-	}
-	
-	private void addCraftingMatrix() {
+ 		// Slots for craft matrix
 		for (int i = 0; i < 3; ++i) {
 			for (int j = 0; j < 3; ++j) {
 				addSlotToContainer(new Slot(craftMatrix, j + i * 3, 30 + j * 18, 17 + i * 18));
 			}
 		}
-	}
-	
-	private void addPlayerInventory(InventoryPlayer playerInventory) {
+		// Player slots
 		for (int i = 0; i < 3; ++i) {
 			for (int j = 0; j < 9; ++j) {
 				addSlotToContainer(new Slot(playerInventory, j + i * 9 + 9, 8 + j * 18, 84 + i * 18));
@@ -68,15 +60,14 @@ public class SCTContainer extends ContainerWorkbench {
 			addSlotToContainer(new Slot(playerInventory, k, 8 + k * 18, 142));
 		}
 	}
-
-	@Override
-	public boolean canInteractWith(EntityPlayer playerIn) {
-		return tile.canInteractWith(playerIn);
+	
+	private void loadInventoryFromTile() {
+		for (int i = 0; i < 9; i++) {
+			craftMatrix.setInventorySlotContents(i, tileInventory.getStackInSlot(i));
+		}
 	}
 	
-	@Override
-	public void onContainerClosed(EntityPlayer player) {
-		if (world.isRemote) { return; }
+	private void saveInventoryToTile() {
 		for (int i = 0; i < 9; i++) {
 			if (!tileInventory.getStackInSlot(i).isEmpty()) { tileInventory.setStackInSlot(i, ItemStack.EMPTY); }
 			tileInventory.setStackInSlot(i, craftMatrix.removeStackFromSlot(i));
@@ -84,8 +75,41 @@ public class SCTContainer extends ContainerWorkbench {
 	}
 	
 	@Override
-	protected void slotChangedCraftingGrid(World world, EntityPlayer player, InventoryCrafting inv, InventoryCraftResult result) {
-		
+	public boolean canInteractWith(EntityPlayer playerIn) {
+		return tile.canInteractWith(playerIn);
 	}
 	
+	@Override
+	public void onContainerClosed(EntityPlayer player) {
+		if (this.world.isRemote) { return; }
+		saveInventoryToTile();
+	}
+	
+	@Override
+	protected void slotChangedCraftingGrid(World world, EntityPlayer player, InventoryCrafting inv, InventoryCraftResult result) {
+		if (this.world.isRemote) { return; }
+		
+		ItemStack currentResult = ItemStack.EMPTY;
+		IRecipe currentRecipe = null;
+
+		if (lastRecipe == null || !lastRecipe.matches(inv, world)) {
+			currentRecipe = CraftingManager.findMatchingRecipe(inv, world);
+		} else {
+			currentRecipe = lastRecipe;
+		}
+
+		if (currentRecipe != null) {
+			currentResult = currentRecipe.getCraftingResult(inv);
+		}
+
+		result.setInventorySlotContents(0, currentResult);
+		EntityPlayerMP entityplayermp = (EntityPlayerMP) player;
+		if (currentRecipe != lastRecipe) {
+			entityplayermp.connection.sendPacket(new SPacketSetSlot(this.windowId, 0, currentResult));
+			lastRecipe = currentRecipe;
+		} else if (currentRecipe != null && currentRecipe == lastRecipe
+				&& !ItemStack.areItemStacksEqual(currentResult, lastRecipe.getCraftingResult(inv))) {
+			entityplayermp.connection.sendPacket(new SPacketSetSlot(this.windowId, 0, currentResult));
+		}
+	}
 }

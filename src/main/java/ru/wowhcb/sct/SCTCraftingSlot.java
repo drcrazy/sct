@@ -60,7 +60,7 @@ public class SCTCraftingSlot extends SlotCrafting {
 
 	@Override
 	public ItemStack onTake(EntityPlayer player, ItemStack stack) {
-		this.onCrafting(stack);
+		onCrafting(stack);
 		ForgeHooks.setCraftingPlayer(player);
 		NonNullList<ItemStack> list;
 		if (container.lastRecipe != null && container.lastRecipe.matches(craftMatrix, container.world)) {
