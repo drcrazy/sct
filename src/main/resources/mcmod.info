@@ -9,7 +9,7 @@
   "updateUrl": "",
   "authorList": ["drcrazy"],
   "credits": "Alphabet gave me all letters to write this mod, modmuss50 gave textures.",
-  "logoFile": "",
+  "logoFile": "logo.png",
   "screenshots": [],
   "dependencies": []
 }
