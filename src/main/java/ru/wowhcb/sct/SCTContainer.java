@@ -86,6 +86,7 @@ public class SCTContainer extends ContainerWorkbench {
 	}
 	
 	@Override
+	// Based on same method from FastWorkbench
 	protected void slotChangedCraftingGrid(World world, EntityPlayer player, InventoryCrafting inv, InventoryCraftResult result) {
 		if (this.world.isRemote) { return; }
 		
