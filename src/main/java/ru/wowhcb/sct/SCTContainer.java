@@ -3,6 +3,8 @@
  */
 package ru.wowhcb.sct;
 
+import java.util.ArrayList;
+
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.player.InventoryPlayer;
@@ -14,8 +16,12 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.CraftingManager;
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.network.play.server.SPacketSetSlot;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.items.CapabilityItemHandler;
+import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 
 /**
@@ -27,7 +33,9 @@ public class SCTContainer extends ContainerWorkbench {
 	private final SCTTileEntity tile;
 	private final ItemStackHandler tileInventory;
 	public final World world;
+	public final BlockPos pos;
 	public IRecipe lastRecipe;
+	public ArrayList<IItemHandler> adjacentInventories = new ArrayList<IItemHandler>();
 	
 	/**
 	 * @param playerInventory InventoryPlayer Inventory of a player who use our tile
@@ -38,7 +46,20 @@ public class SCTContainer extends ContainerWorkbench {
 		super(playerInventory, tile.getWorld(), tile.getPos());
 		this.tile = tile;
 		this.world = tile.getWorld();
+		this.pos = tile.getPos();
  		this.tileInventory = (ItemStackHandler) tile.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null);
+		for (EnumFacing face : EnumFacing.VALUES) {
+			TileEntity adjacentTile = world.getTileEntity(pos.offset(face));
+			if (adjacentTile == null) {
+				continue;
+			} else if (adjacentTile.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, face.getOpposite())) {
+				IItemHandler adjacentInventory = adjacentTile
+						.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, face.getOpposite());
+				if (adjacentInventory != null) {
+					adjacentInventories.add(adjacentInventory);
+				}
+			}
+		}
  		inventorySlots.clear();
  		inventoryItemStacks.clear();
  		loadInventoryFromTile();

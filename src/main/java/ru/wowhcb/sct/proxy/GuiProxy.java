@@ -9,8 +9,8 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.network.IGuiHandler;
 import ru.wowhcb.sct.SCTContainer;
-import ru.wowhcb.sct.SCTGui;
 import ru.wowhcb.sct.SCTTileEntity;
+import ru.wowhcb.sct.gui.SCTGui;
 
 /**
  * @author drcrazy
