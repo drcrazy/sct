@@ -11,6 +11,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.NonNullList;
 import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.fml.common.FMLCommonHandler;
+import ru.wowhcb.sct.inventory.SCTContainer;
 
 /**
  * SlotCraftingSucks from FastWorkbench See:

@@ -8,9 +8,9 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.network.IGuiHandler;
-import ru.wowhcb.sct.SCTContainer;
 import ru.wowhcb.sct.SCTTileEntity;
 import ru.wowhcb.sct.gui.SCTGui;
+import ru.wowhcb.sct.inventory.SCTContainer;
 
 /**
  * @author drcrazy

@@ -3,14 +3,14 @@
  */
 package ru.wowhcb.sct.gui;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import net.minecraftforge.items.IItemHandler;
-import ru.wowhcb.sct.SCTContainer;
+import ru.wowhcb.sct.inventory.SCTContainer;
 
 /**
  * @author drcrazy
@@ -20,18 +20,24 @@ import ru.wowhcb.sct.SCTContainer;
 @SideOnly(Side.CLIENT)
 public class SCTGui extends GuiContainer {
 
-	private static final ResourceLocation BACKGROUND = new ResourceLocation("textures/gui/container/crafting_table.png");
-	private static final int SIDE_WIDTH = 7 + 54 + 7;
+	public static final ResourceLocation BACKGROUND = new ResourceLocation("textures/gui/container/crafting_table.png");
+	
+	private SCTGuiSideInventory sideGUI = null;
 	//private SCTContainer container;
-	private int numSideSlots = 0;
 
 	public SCTGui(SCTContainer container) {
 		super(container);
+		if (container.adjacentContainer != null) {
+			this.sideGUI = new SCTGuiSideInventory(container.adjacentContainer);
+		}
 		//this.container = container;
-		if (!container.adjacentInventories.isEmpty()) {
-			for (IItemHandler handler : container.adjacentInventories) {
-				numSideSlots += handler.getSlots();
-			}
+	}
+	
+	@Override
+	public void setWorldAndResolution(Minecraft mc, int width, int height) {
+		super.setWorldAndResolution(mc, width, height);
+		if (sideGUI != null) {
+			sideGUI.setWorldAndResolution(mc, width, height);
 		}
 	}
 
@@ -40,14 +46,8 @@ public class SCTGui extends GuiContainer {
 		GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
 		mc.getTextureManager().bindTexture(BACKGROUND);
 		drawTexturedModalRect(guiLeft, guiTop, 0, 0, 175, 165);
-		if (numSideSlots > 0) {
-			drawTexturedModalRect(guiLeft - SIDE_WIDTH, guiTop, 0, 0, SIDE_WIDTH, 6);
-			int i = 0;
-			for (i=0; i < numSideSlots / 5; i++) {
-				drawTexturedModalRect(guiLeft - SIDE_WIDTH, guiTop + 6 + i * 18, 0, 5, SIDE_WIDTH, 9);
-				drawTexturedModalRect(guiLeft - SIDE_WIDTH, guiTop + 6 + i * 18 + 9, 0, 5, SIDE_WIDTH, 9);
-			}
-			drawTexturedModalRect(guiLeft - SIDE_WIDTH, guiTop + 6 + i * 18, 0, 165 - 6, SIDE_WIDTH, 6 );		
+		if (sideGUI != null) {
+			sideGUI.drawGuiContainerBackgroundLayer(partialTicks, mouseX, mouseY);			
 		}
 	}
 

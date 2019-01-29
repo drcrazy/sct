@@ -1,9 +1,7 @@
 /**
  * 
  */
-package ru.wowhcb.sct;
-
-import java.util.ArrayList;
+package ru.wowhcb.sct.inventory;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -23,6 +21,8 @@ import net.minecraft.world.World;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
+import ru.wowhcb.sct.SCTCraftingSlot;
+import ru.wowhcb.sct.SCTTileEntity;
 
 /**
  * @author drcrazy
@@ -30,12 +30,14 @@ import net.minecraftforge.items.ItemStackHandler;
  */
 public class SCTContainer extends ContainerWorkbench {
 
-	private final SCTTileEntity tile;
+	public final SCTTileEntity tile;
 	private final ItemStackHandler tileInventory;
 	public final World world;
 	public final BlockPos pos;
 	public IRecipe lastRecipe;
-	public ArrayList<IItemHandler> adjacentInventories = new ArrayList<IItemHandler>();
+	public IItemHandler adjacentInventory = null;
+	
+	public SCTSideContainer adjacentContainer = null;
 	
 	/**
 	 * @param playerInventory InventoryPlayer Inventory of a player who use our tile
@@ -53,11 +55,10 @@ public class SCTContainer extends ContainerWorkbench {
 			if (adjacentTile == null) {
 				continue;
 			} else if (adjacentTile.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, face.getOpposite())) {
-				IItemHandler adjacentInventory = adjacentTile
-						.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, face.getOpposite());
-				if (adjacentInventory != null) {
-					adjacentInventories.add(adjacentInventory);
-				}
+				this.adjacentInventory = adjacentTile.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY,
+						face.getOpposite());
+				this.adjacentContainer = new SCTSideContainer(this, adjacentInventory);
+				break;
 			}
 		}
  		inventorySlots.clear();

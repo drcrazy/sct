@@ -9,9 +9,9 @@ import mezz.jei.api.IModPlugin;
 import mezz.jei.api.IModRegistry;
 import mezz.jei.api.recipe.VanillaRecipeCategoryUid;
 import net.minecraft.item.ItemStack;
-import ru.wowhcb.sct.SCTContainer;
 import ru.wowhcb.sct.Sct;
 import ru.wowhcb.sct.gui.SCTGui;
+import ru.wowhcb.sct.inventory.SCTContainer;
 
 /**
  * @author drcrazy
