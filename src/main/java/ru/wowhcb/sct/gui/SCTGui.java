@@ -28,7 +28,7 @@ public class SCTGui extends GuiContainer {
 	public SCTGui(SCTContainer container) {
 		super(container);
 		if (container.adjacentContainer != null) {
-			this.sideGUI = new SCTGuiSideInventory(container.adjacentContainer);
+			//this.sideGUI = new SCTGuiSideInventory(container.adjacentContainer);
 		}
 		//this.container = container;
 	}

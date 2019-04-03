@@ -25,6 +25,8 @@ public class ClientProxy extends CommonProxy {
     public static void registerModels(ModelRegistryEvent event) {
 		Item item = Item.getItemFromBlock(Sct.smart_workbench);
 		ModelLoader.setCustomModelResourceLocation(item, 0, new ModelResourceLocation(item.getRegistryName(), "inventory"));
+		item = Item.getItemFromBlock(Sct.smart_workbench_slab);
+		ModelLoader.setCustomModelResourceLocation(item, 0, new ModelResourceLocation(item.getRegistryName(), "inventory"));
     }
 
 }

@@ -1,0 +1,30 @@
+{
+	"forge_marker": 1,
+	"defaults": {
+		"textures": {
+			"down": "sct:blocks/sct_bottom",
+			"top": "sct:blocks/sct_top",
+			"side": "sct:blocks/sct_side"
+		},
+		"transform": "forge:default-block",
+		"model": "sct:smart_slab"
+	},
+	"variants": {
+		"normal": {
+			"transform": "forge:default-block",
+			"model": "sct:smart_slab",
+			"textures": {
+				"top": "sct:blocks/sct_top",
+				"side": "sct:blocks/sct_side"
+			}
+		},
+		"inventory": {
+			"transform": "forge:default-block",
+			"model": "sct:smart_slab",
+			"textures": {
+				"top": "sct:blocks/sct_top",
+				"side": "sct:blocks/sct_side"
+			}
+		}
+	}
+}

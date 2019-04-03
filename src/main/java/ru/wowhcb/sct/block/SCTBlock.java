@@ -1,7 +1,7 @@
 /**
  * 
  */
-package ru.wowhcb.sct;
+package ru.wowhcb.sct.block;
 
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
@@ -13,6 +13,8 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import ru.wowhcb.sct.SCTTileEntity;
+import ru.wowhcb.sct.Sct;
 
 /**
  * @author drcrazy

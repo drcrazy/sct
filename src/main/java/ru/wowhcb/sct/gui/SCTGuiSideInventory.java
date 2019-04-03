@@ -4,11 +4,9 @@
 package ru.wowhcb.sct.gui;
 
 import net.minecraft.client.gui.inventory.GuiContainer;
-import net.minecraft.inventory.Container;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import net.minecraftforge.items.SlotItemHandler;
 import ru.wowhcb.sct.inventory.SCTSideContainer;
 
 /**
