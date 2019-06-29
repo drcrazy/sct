@@ -55,7 +55,6 @@ public class SCTCraftingSlot extends SlotCrafting {
 			stack.onCrafting(this.player.world, this.player, this.amountCrafted);
 			FMLCommonHandler.instance().firePlayerCraftingEvent(this.player, stack, craftMatrix);
 		}
-
 		this.amountCrafted = 0;
 	}
 
@@ -66,35 +65,35 @@ public class SCTCraftingSlot extends SlotCrafting {
 		NonNullList<ItemStack> list;
 		if (container.lastRecipe != null && container.lastRecipe.matches(craftMatrix, container.world)) {
 			list = container.lastRecipe.getRemainingItems(craftMatrix);
-		}
-		else {
+		} else {
 			list = craftMatrix.stackList;
 		}
 		ForgeHooks.setCraftingPlayer(null);
 
 		for (int i = 0; i < list.size(); ++i) {
-			ItemStack itemstack = this.craftMatrix.getStackInSlot(i);
-			ItemStack itemstack1 = list.get(i);
+			ItemStack inventoryStack = this.craftMatrix.getStackInSlot(i);
+			ItemStack remainingStack = list.get(i);
 
-			if (!itemstack.isEmpty()) {
+			if (!inventoryStack.isEmpty()) {
 				this.craftMatrix.decrStackSize(i, 1);
-				itemstack = this.craftMatrix.getStackInSlot(i);
+				inventoryStack = this.craftMatrix.getStackInSlot(i);
 			}
 
-			if (!itemstack1.isEmpty()) {
-				if (itemstack.isEmpty()) {
-					this.craftMatrix.setInventorySlotContents(i, itemstack1);
-				} else if (ItemStack.areItemsEqual(itemstack, itemstack1)
-						&& ItemStack.areItemStackTagsEqual(itemstack, itemstack1)) {
-					itemstack1.grow(itemstack.getCount());
-					this.craftMatrix.setInventorySlotContents(i, itemstack1);
-				} else if (!this.player.inventory.addItemStackToInventory(itemstack1)) {
-					this.player.dropItem(itemstack1, false);
-				}
+			if (remainingStack.isEmpty()) {
+				continue;
+			}
+
+			if (inventoryStack.isEmpty()) {
+				this.craftMatrix.setInventorySlotContents(i, remainingStack);
+			} else if (ItemStack.areItemsEqual(inventoryStack, remainingStack)
+					&& ItemStack.areItemStackTagsEqual(inventoryStack, remainingStack)) {
+				remainingStack.grow(inventoryStack.getCount());
+				this.craftMatrix.setInventorySlotContents(i, remainingStack);
+			} else if (!this.player.inventory.addItemStackToInventory(remainingStack)) {
+				this.player.dropItem(remainingStack, false);
 			}
 		}
 
 		return stack;
 	}
-
 }

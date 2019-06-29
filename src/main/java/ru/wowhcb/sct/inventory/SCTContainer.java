@@ -110,8 +110,6 @@ public class SCTContainer extends ContainerWorkbench {
 	@Override
 	// Based on same method from FastWorkbench
 	protected void slotChangedCraftingGrid(World world, EntityPlayer player, InventoryCrafting inv, InventoryCraftResult result) {
-		if (this.world.isRemote) { return; }
-		
 		ItemStack currentResult = ItemStack.EMPTY;
 		IRecipe currentRecipe = null;
 
@@ -120,12 +118,18 @@ public class SCTContainer extends ContainerWorkbench {
 		} else {
 			currentRecipe = lastRecipe;
 		}
-
+		
 		if (currentRecipe != null) {
 			currentResult = currentRecipe.getCraftingResult(inv);
 		}
-
+		
 		result.setInventorySlotContents(0, currentResult);
+		
+		if (world.isRemote) {
+			lastRecipe = currentRecipe;
+			return; 
+		}
+		
 		EntityPlayerMP entityplayermp = (EntityPlayerMP) player;
 		if (currentRecipe != lastRecipe) {
 			entityplayermp.connection.sendPacket(new SPacketSetSlot(this.windowId, 0, currentResult));
