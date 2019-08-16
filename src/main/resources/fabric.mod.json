@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "id": "sct",
+  "version": "${version}",
+
+  "name": "Smart Crafting Table",
+  "description": "Keeps inventory for ya!",
+  "authors": [
+    "drcrazy"
+  ],
+  "contact": {
+    "homepage": "https://github.com/drcrazy/sct",
+    "sources": "https://github.com/drcrazy/sct"
+  },
+
+  "license": "MIT",
+  "icon": "assets/sct/logo.png",
+
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "ru.wowhcb.sct.SCT"
+    ]
+  },
+
+  "depends": {
+    "fabricloader": ">=0.4.0",
+    "fabric": "*"
+  }
+}
