@@ -1,6 +1,3 @@
-/**
- * 
- */
 package ru.wowhcb.sct;
 
 import org.apache.logging.log4j.LogManager;
@@ -43,6 +40,8 @@ public class SCT implements ModInitializer {
 			
 			
 			//Items
+			
+			SCT.LOGGER.debug("Smart Crafting Table setup done!");
 	}
 
 }

@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "sct:smart_workbench"
+    }
+  ],
+  "result": {
+    "item": "sct:smart_workbench_slab"
+  }
+}

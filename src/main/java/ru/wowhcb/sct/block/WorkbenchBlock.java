@@ -1,20 +1,25 @@
-/**
- * 
- */
 package ru.wowhcb.sct.block;
 
 import net.fabricmc.fabric.api.block.FabricBlockSettings;
-import net.minecraft.block.Block;
+import net.minecraft.block.BlockWithEntity;
 import net.minecraft.block.Material;
+import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.world.BlockView;
 
 /**
  * @author drcrazy
  *
  */
-public class WorkbenchBlock extends Block {
+public class WorkbenchBlock extends BlockWithEntity {
 
 	public WorkbenchBlock() {
 		super(FabricBlockSettings.of(Material.WOOD).build());
+	}
+
+	@Override
+	public BlockEntity createBlockEntity(BlockView blockView) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }
