@@ -20,6 +20,9 @@
   "entrypoints": {
     "main": [
       "ru.wowhcb.sct.SCT"
+    ],
+    "client": [
+      "ru.wowhcb.sct.SCT"
     ]
   },
 

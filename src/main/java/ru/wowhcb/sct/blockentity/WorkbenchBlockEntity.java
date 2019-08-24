@@ -2,11 +2,9 @@ package ru.wowhcb.sct.blockentity;
 
 import java.util.Iterator;
 
+import net.fabricmc.fabric.api.container.ContainerProviderRegistry;
 import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.container.Container;
-import net.minecraft.container.ContainerProvider;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventories;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
@@ -14,7 +12,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.DefaultedList;
 import ru.wowhcb.sct.SCT;
 
-public class WorkbenchBlockEntity extends BlockEntity implements Inventory, ContainerProvider {
+public class WorkbenchBlockEntity extends BlockEntity implements Inventory {
 	private DefaultedList<ItemStack> inventory;
 	
 
@@ -23,11 +21,14 @@ public class WorkbenchBlockEntity extends BlockEntity implements Inventory, Cont
 		this.inventory = DefaultedList.ofSize(9, ItemStack.EMPTY);
 	}
 	
+	public void openContainer(PlayerEntity playerEntity) {
+		ContainerProviderRegistry.INSTANCE.openContainer(SCT.SCT_CONTAINER, playerEntity, packetByteBuf -> packetByteBuf.writeBlockPos(pos));
+	}
+	
 	// BlockEntity
 	public void fromTag(CompoundTag compoundTag) {
 		super.fromTag(compoundTag);
 		Inventories.fromTag(compoundTag, inventory);
-
 	}
 
 	public CompoundTag toTag(CompoundTag compoundTag) {
@@ -99,17 +100,7 @@ public class WorkbenchBlockEntity extends BlockEntity implements Inventory, Cont
 	public boolean canPlayerUseInv(PlayerEntity player) {
 	      if (world.getBlockEntity(pos) != this) {
 	          return false;
-	       } else {
-	          return player.squaredDistanceTo((double)pos.getX() + 0.5D, (double)pos.getY() + 0.5D, (double)pos.getZ() + 0.5D) <= 64.0D;
 	       }
+		return player.squaredDistanceTo((double)pos.getX() + 0.5D, (double)pos.getY() + 0.5D, (double)pos.getZ() + 0.5D) <= 64.0D;
 	}
-
-	// ContainerProvider
-	@Override
-	public Container createMenu(int syncId, PlayerInventory playerInventory, PlayerEntity player) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	
-
 }

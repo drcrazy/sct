@@ -8,9 +8,13 @@ import net.minecraft.block.BlockWithEntity;
 import net.minecraft.block.Material;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.EntityContext;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.Hand;
+import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.world.BlockView;
+import net.minecraft.world.World;
 import ru.wowhcb.sct.blockentity.WorkbenchBlockEntity;
 
 /**
@@ -42,4 +46,14 @@ public class WorkbenchSlab extends BlockWithEntity {
 		return shape;
 	}
 	
+	@Override
+	public boolean activate(BlockState state, World world, BlockPos pos, PlayerEntity playerEntity, Hand hand, BlockHitResult blockHitResult) {
+		if (!world.isClient) {
+			BlockEntity blockEntity = world.getBlockEntity(pos);
+			if (blockEntity instanceof WorkbenchBlockEntity) {
+				((WorkbenchBlockEntity) blockEntity).openContainer(playerEntity);
+			}
+		}
+		return true;
+	}
 }
