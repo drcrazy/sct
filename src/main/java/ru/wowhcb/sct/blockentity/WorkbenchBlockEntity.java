@@ -1,42 +1,54 @@
 package ru.wowhcb.sct.blockentity;
 
-import java.util.Iterator;
-
-import net.fabricmc.fabric.api.container.ContainerProviderRegistry;
+import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventories;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.util.DefaultedList;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.screen.NamedScreenHandlerFactory;
+import net.minecraft.screen.ScreenHandler;
+import net.minecraft.text.Text;
+import net.minecraft.util.collection.DefaultedList;
+import net.minecraft.util.math.BlockPos;
 import ru.wowhcb.sct.SCT;
 
-public class WorkbenchBlockEntity extends BlockEntity implements Inventory {
-	private DefaultedList<ItemStack> inventory;
-	
+import java.util.Iterator;
 
-	public WorkbenchBlockEntity() {
-		super(SCT.SMART_WORKBENCH_BE_TYPE);
+public class WorkbenchBlockEntity extends BlockEntity implements NamedScreenHandlerFactory, Inventory {
+	private final DefaultedList<ItemStack> inventory;
+	
+	public WorkbenchBlockEntity(BlockPos blockPos, BlockState blockState) {
+		super(SCT.SMART_WORKBENCH_BE_TYPE, blockPos, blockState);
 		this.inventory = DefaultedList.ofSize(9, ItemStack.EMPTY);
 	}
 	
-	public void openContainer(PlayerEntity playerEntity) {
-		ContainerProviderRegistry.INSTANCE.openContainer(SCT.SCT_CONTAINER, playerEntity, packetByteBuf -> packetByteBuf.writeBlockPos(pos));
-	}
-	
 	// BlockEntity
-	public void fromTag(CompoundTag compoundTag) {
-		super.fromTag(compoundTag);
-		Inventories.fromTag(compoundTag, inventory);
+	@Override
+	public void readNbt(NbtCompound nbt) {
+		super.readNbt(nbt);
+		Inventories.readNbt(nbt, inventory);
 	}
 
-	public CompoundTag toTag(CompoundTag compoundTag) {
-		super.toTag(compoundTag);
-		Inventories.toTag(compoundTag, inventory);
-
-		return compoundTag;
+	@Override
+	public void writeNbt(NbtCompound nbt) {
+		super.writeNbt(nbt);
+		Inventories.writeNbt(nbt, inventory);
 	}
+
+	// NamedScreenHandlerFactory
+	@Override
+	public ScreenHandler createMenu(int syncId, PlayerInventory playerInventory, PlayerEntity player) {
+		return new WorkbenchScreenHandler(syncId, playerInventory, this);
+	}
+
+	@Override
+	public Text getDisplayName() {
+		return Text.translatable(getCachedState().getBlock().getTranslationKey());
+	}
+
 
 	// Inventory
 	@Override
@@ -46,61 +58,64 @@ public class WorkbenchBlockEntity extends BlockEntity implements Inventory {
 	}
 
 	@Override
-	public int getInvSize() {
+	public int size() {
 		return 9;
 	}
 
 	@Override
-	public boolean isInvEmpty() {
-	      Iterator<ItemStack> iterator = inventory.iterator();
+	public boolean isEmpty() {
+		Iterator<ItemStack> iterator = inventory.iterator();
 
-	      ItemStack stack;
-	      do {
-	         if (!iterator.hasNext()) {
-	            return true;
-	         }
+		ItemStack stack;
+		do {
+			if (!iterator.hasNext()) {
+				return true;
+			}
 
-	         stack = (ItemStack)iterator.next();
-	      } while(stack.isEmpty());
+			stack = iterator.next();
+		} while(stack.isEmpty());
 
-	      return false;
+		return false;
 	}
 
 	@Override
-	public ItemStack getInvStack(int index) {
-	      return index >= 0 && index < inventory.size() ? inventory.get(index) : ItemStack.EMPTY;
+	public ItemStack getStack(int slot) {
+		return slot >= 0 && slot < inventory.size() ? inventory.get(slot) : ItemStack.EMPTY;
 	}
 
 	@Override
-	public ItemStack takeInvStack(int index, int amount) {
-	      ItemStack stack = Inventories.splitStack(inventory, index, amount);
-	      if (!stack.isEmpty()) {
-	         markDirty();
-	      }
+	public ItemStack removeStack(int slot, int amount) {
+		ItemStack stack = Inventories.splitStack(inventory, slot, amount);
+		if (!stack.isEmpty()) {
+			markDirty();
+		}
 
-	      return stack;
+		return stack;
 	}
 
 	@Override
-	public ItemStack removeInvStack(int index) {
-		return Inventories.removeStack(inventory, index);
+	public ItemStack removeStack(int slot) {
+		return Inventories.removeStack(inventory, slot);
 	}
 
 	@Override
-	public void setInvStack(int index, ItemStack stack) {
-	      inventory.set(index, stack);
-	      if (!stack.isEmpty() && stack.getCount() > getInvMaxStackAmount()) {
-	         stack.setCount(getInvMaxStackAmount());
-	      }
+	public void setStack(int slot, ItemStack stack) {
+		inventory.set(slot, stack);
+		if (!stack.isEmpty() && stack.getCount() > getMaxCountPerStack()) {
+			stack.setCount(getMaxCountPerStack());
+		}
 
-	      markDirty();
+		markDirty();
 	}
 
 	@Override
-	public boolean canPlayerUseInv(PlayerEntity player) {
-	      if (world.getBlockEntity(pos) != this) {
-	          return false;
-	       }
+	public boolean canPlayerUse(PlayerEntity player) {
+		if (world == null){
+			return false;
+		}
+		if (world.getBlockEntity(pos) != this) {
+			return false;
+		}
 		return player.squaredDistanceTo((double)pos.getX() + 0.5D, (double)pos.getY() + 0.5D, (double)pos.getZ() + 0.5D) <= 64.0D;
 	}
 }

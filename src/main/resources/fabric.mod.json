@@ -22,12 +22,14 @@
       "ru.wowhcb.sct.SCT"
     ],
     "client": [
-      "ru.wowhcb.sct.SCT"
+      "ru.wowhcb.sct.SCTClient"
     ]
   },
 
   "depends": {
-    "fabricloader": ">=0.4.0",
-    "fabric": "*"
+    "fabricloader": ">=0.14.6",
+    "fabric": "*",
+    "minecraft": "~1.19",
+    "java": ">=17"
   }
 }
