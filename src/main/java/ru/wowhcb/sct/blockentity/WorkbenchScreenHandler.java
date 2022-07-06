@@ -20,10 +20,9 @@ import ru.wowhcb.sct.SCT;
 import java.util.Optional;
 
 public class WorkbenchScreenHandler extends ScreenHandler {
-    private final CraftingInventory craftingInventory = new CraftingInventory(this, 3, 3);
+    public final CraftingInventory craftingInventory = new CraftingInventory(this, 3, 3);
+    public final PlayerEntity player;
     private final CraftingResultInventory resultInventory = new CraftingResultInventory();
-
-    private final PlayerEntity player;
     private final Inventory blockEntityInventory;
     private final World world;
     public CraftingRecipe cachedRecipe = null;
@@ -49,7 +48,7 @@ public class WorkbenchScreenHandler extends ScreenHandler {
         }
 
         // Crafting Result Slot
-        this.addSlot(new SCTCraftingResultSlot(playerInventory.player, this.craftingInventory, this.resultInventory, 0, 124, 35));
+        this.addSlot(new SCTCraftingResultSlot(this, playerInventory.player, this.craftingInventory, this.resultInventory, 0, 124, 35));
 
         int h;
         int w;
@@ -73,28 +72,37 @@ public class WorkbenchScreenHandler extends ScreenHandler {
     }
 
     @Override
-    public ItemStack transferSlot(PlayerEntity player, int invSlot) {
-        ItemStack newStack = ItemStack.EMPTY;
-        Slot slot = this.slots.get(invSlot);
-        if (slot.hasStack()) {
-            ItemStack originalStack = slot.getStack();
-            newStack = originalStack.copy();
-            if (invSlot < this.craftingInventory.size()) {
-                if (!this.insertItem(originalStack, this.craftingInventory.size(), this.slots.size(), true)) {
-                    return ItemStack.EMPTY;
-                }
-            } else if (!this.insertItem(originalStack, 0, this.craftingInventory.size(), false)) {
+    public ItemStack transferSlot(PlayerEntity player, int index) {
+        ItemStack itemStack = ItemStack.EMPTY;
+        Slot slot = this.slots.get(index);
+        if (!slot.hasStack()) {
+            return itemStack;
+        }
+        ItemStack itemStack2 = slot.getStack();
+        itemStack = itemStack2.copy();
+        if (index == 0) {
+            itemStack2.getItem().onCraft(itemStack2, world, player);
+            if (!this.insertItem(itemStack2, 10, 46, true)) {
                 return ItemStack.EMPTY;
             }
-
-            if (originalStack.isEmpty()) {
-                slot.setStack(ItemStack.EMPTY);
-            } else {
-                slot.markDirty();
-            }
+            slot.onQuickTransfer(itemStack2, itemStack);
+        } else if (index >= 10 && index < 46 ? !this.insertItem(itemStack2, 1, 10, false) && (index < 37 ? !this.insertItem(itemStack2, 37, 46, false) : !this.insertItem(itemStack2, 10, 37, false)) : !this.insertItem(itemStack2, 10, 46, false)) {
+            return ItemStack.EMPTY;
+        }
+        if (itemStack2.isEmpty()) {
+            slot.setStack(ItemStack.EMPTY);
+        } else {
+            slot.markDirty();
+        }
+        if (itemStack2.getCount() == itemStack.getCount()) {
+            return ItemStack.EMPTY;
+        }
+        slot.onTakeItem(player, itemStack2);
+        if (index == 0) {
+            player.dropItem(itemStack2, false);
         }
 
-        return newStack;
+        return itemStack;
     }
 
     @Override
@@ -104,9 +112,13 @@ public class WorkbenchScreenHandler extends ScreenHandler {
 
     @Override
     public void close(PlayerEntity player) {
-        if (this.world.isClient) { return; }
+        if (this.world.isClient) {
+            return;
+        }
         for (int i = 0; i < 9; i++) {
-            if (!blockEntityInventory.getStack(i).isEmpty()) { blockEntityInventory.setStack(i, ItemStack.EMPTY); }
+            if (!blockEntityInventory.getStack(i).isEmpty()) {
+                blockEntityInventory.setStack(i, ItemStack.EMPTY);
+            }
             blockEntityInventory.setStack(i, craftingInventory.removeStack(i));
         }
     }
@@ -117,29 +129,29 @@ public class WorkbenchScreenHandler extends ScreenHandler {
         CraftingRecipe currentRecipe = null;
 
         // Check cache
-        if (cachedRecipe != null && !cachedRecipe.matches(craftingInventory, world)){
+        if (cachedRecipe != null && !cachedRecipe.matches(craftingInventory, world)) {
             cachedRecipe = null;
         }
 
         // Find or set current recipe
-        if (cachedRecipe == null){
+        if (cachedRecipe == null) {
             Optional<CraftingRecipe> optional = world.getRecipeManager().getFirstMatch(RecipeType.CRAFTING, craftingInventory, world);
-            if (optional.isPresent()){
+            if (optional.isPresent()) {
                 currentRecipe = optional.get();
                 cachedRecipe = currentRecipe;
             }
-        }
-        else {
+        } else {
             currentRecipe = cachedRecipe;
         }
 
-        if (world.isClient){ return; }
-
-        ServerPlayerEntity serverPlayerEntity = (ServerPlayerEntity)player;
-        if (currentRecipe != null && resultInventory.shouldCraftRecipe(world, serverPlayerEntity, currentRecipe)){
-            craftingResult = currentRecipe.craft(craftingInventory);
+        if (world.isClient) {
+            return;
         }
-        else {
+
+        ServerPlayerEntity serverPlayerEntity = (ServerPlayerEntity) player;
+        if (currentRecipe != null && resultInventory.shouldCraftRecipe(world, serverPlayerEntity, currentRecipe)) {
+            craftingResult = currentRecipe.craft(craftingInventory);
+        } else {
             craftingResult = ItemStack.EMPTY;
         }
 

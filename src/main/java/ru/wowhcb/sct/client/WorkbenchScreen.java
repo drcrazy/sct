@@ -34,6 +34,14 @@ public class WorkbenchScreen extends HandledScreen<WorkbenchScreenHandler> {
 		// Center the title
 		titleX = (backgroundWidth - textRenderer.getWidth(title)) / 2;
 	}
+
+	@Override
+	public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
+		renderBackground(matrices);
+		super.render(matrices, mouseX, mouseY, delta);
+		drawMouseoverTooltip(matrices, mouseX, mouseY);
+	}
+
 	@Override
 	protected void drawBackground(MatrixStack matrices, float delta, int mouseX, int mouseY) {
 		RenderSystem.setShader(GameRenderer::getPositionTexShader);
